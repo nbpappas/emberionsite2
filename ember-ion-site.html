@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ember Ion — Clinical & Workforce Health Technology</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,700&family=Outfit:wght@100;200;300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
+:root {
+  --ember:   #e04800;
+  --ember-d: #b83a00;
+  --amber:   #ff9944;
+  --gold:    #ffcc55;
+  --blue:    #44aaff;
+  --ink:     #08090a;
+  --ink2:    #0d0e10;
+  --ink3:    #111316;
+  --ink4:    #161719;
+  --line:    rgba(255,255,255,0.07);
+  --line-e:  rgba(224,72,0,0.18);
+  --text:    #ddd6ca;
+  --dim:     #5a554e;
+  --softer:  rgba(221,214,202,0.55);
+}
+
+/* ─────────────────────────────────────────
+   RESET + BASE
+───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{
+  background:var(--ink);color:var(--text);
+  font-family:'Outfit',sans-serif;font-weight:300;
+  overflow-x:hidden;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* grain overlay */
+body::before{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:.5;
+}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--ink);}
+::-webkit-scrollbar-thumb{background:var(--ember);}
+
+a{color:inherit;text-decoration:none;}
+
+/* ─────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────── */
+@keyframes ecgDraw{
+  0%{stroke-dashoffset:500;opacity:0;}
+  8%{opacity:1;}
+  72%{stroke-dashoffset:0;opacity:1;}
+  90%{stroke-dashoffset:0;opacity:1;}
+  100%{stroke-dashoffset:-500;opacity:0;}
+}
+@keyframes ecgDraw2{
+  0%{stroke-dashoffset:500;opacity:0;}
+  8%{opacity:1;}
+  72%{stroke-dashoffset:0;opacity:1;}
+  90%{stroke-dashoffset:0;opacity:1;}
+  100%{stroke-dashoffset:-500;opacity:0;}
+}
+@keyframes emberPulse{
+  0%,100%{transform:scale(1);filter:brightness(1);}
+  42%{transform:scale(1.14);filter:brightness(1.15);}
+  58%{transform:scale(0.95);filter:brightness(0.9);}
+}
+@keyframes ping{
+  0%{transform:scale(0.8);opacity:.7;}
+  100%{transform:scale(2.6);opacity:0;}
+}
+@keyframes breathe{
+  0%,100%{opacity:.45;}50%{opacity:.9;}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes fadeIn{
+  from{opacity:0;}to{opacity:1;}
+}
+@keyframes spin{
+  from{transform:rotate(0deg);}to{transform:rotate(360deg);}
+}
+@keyframes glowPulse{
+  0%,100%{opacity:.15;}50%{opacity:.28;}
+}
+@keyframes scrollCaret{
+  0%{transform:translateY(0);opacity:1;}
+  60%{transform:translateY(6px);opacity:.3;}
+  100%{transform:translateY(0);opacity:1;}
+}
+@keyframes lineGrow{
+  from{transform:scaleX(0);}to{transform:scaleX(1);}
+}
+@keyframes countUp{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.ecg-line  {stroke-dasharray:500;animation:ecgDraw  3s ease-in-out infinite;}
+.ecg-line-2{stroke-dasharray:500;animation:ecgDraw2 3s ease-in-out infinite 1.5s;}
+.ember-core{animation:emberPulse 1.4s ease-in-out infinite;transform-origin:center;}
+.ping-ring {animation:ping 1.4s ease-out infinite;transform-origin:center;}
+.breathe   {animation:breathe 2.8s ease-in-out infinite;}
+
+/* ─────────────────────────────────────────
+   SCROLL REVEAL
+───────────────────────────────────────── */
+.sr{opacity:0;transform:translateY(26px);transition:opacity .75s ease,transform .75s ease;}
+.sr.on{opacity:1;transform:translateY(0);}
+.sr.d1{transition-delay:.1s;}.sr.d2{transition-delay:.2s;}
+.sr.d3{transition-delay:.3s;}.sr.d4{transition-delay:.4s;}
+
+/* ─────────────────────────────────────────
+   LAYOUT HELPERS
+───────────────────────────────────────── */
+.container{max-width:1180px;margin:0 auto;padding:0 56px;}
+@media(max-width:860px){.container{padding:0 22px;}}
+
+/* ─────────────────────────────────────────
+   RULE DIVIDER
+───────────────────────────────────────── */
+.rule{width:100%;height:1px;background:var(--line);}
+.rule-ember{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--line-e),transparent);}
+
+/* ─────────────────────────────────────────
+   NAV
+───────────────────────────────────────── */
+nav{
+  position:fixed;inset:0 0 auto;z-index:500;height:66px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 52px;
+  background:rgba(8,9,10,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--line);
+}
+.nav-brand{display:flex;align-items:center;}
+.nav-brand svg{overflow:visible;}
+
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none;}
+.nav-links a{
+  font-size:12px;font-weight:500;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim);
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--amber);}
+.nav-cta{
+  background:var(--ember);color:#fff!important;
+  padding:8px 20px;border-radius:3px;
+  font-weight:600!important;letter-spacing:.06em!important;
+  box-shadow:0 4px 22px rgba(224,72,0,.3);
+  transition:background .2s,box-shadow .2s!important;
+}
+.nav-cta:hover{background:var(--ember-d)!important;box-shadow:0 6px 32px rgba(224,72,0,.48)!important;}
+
+@media(max-width:860px){nav{padding:0 20px;}.nav-links{display:none;}}
+
+/* ─────────────────────────────────────────
+   HERO
+───────────────────────────────────────── */
+#hero{
+  position:relative;min-height:100svh;
+  display:grid;grid-template-rows:1fr auto;
+  align-items:center;overflow:hidden;padding-top:66px;
+}
+
+/* deep radial ambient */
+.hero-ambient{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%,rgba(224,72,0,.13) 0%,transparent 65%),
+    radial-gradient(ellipse 40% 40% at 20% 80%,rgba(68,170,255,.05) 0%,transparent 60%);
+  animation:glowPulse 6s ease-in-out infinite;
+}
+
+/* full-width ECG behind hero */
+.hero-ecg-bg{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:140%;pointer-events:none;opacity:.06;overflow:visible;
+}
+
+/* hero content */
+.hero-body{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:80px 40px 60px;
+}
+
+/* big logo */
+.hero-logo-wrap{
+  margin-bottom:52px;
+  animation:fadeUp .9s ease both;
+}
+.hero-logo-wrap svg{overflow:visible;}
+
+/* eyebrow pill */
+.hero-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(224,72,0,.09);
+  border:1px solid rgba(224,72,0,.24);
+  border-radius:100px;padding:6px 20px;
+  font-size:11px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);
+  margin-bottom:36px;
+  animation:fadeUp .9s .08s ease both;
+}
+.pill-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--ember);
+  animation:breathe 1.2s ease-in-out infinite;
+}
+
+/* headline — editorial serif + sans mix */
+.hero-h{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(48px,8.5vw,118px);
+  font-style:italic;font-weight:400;
+  line-height:.9;letter-spacing:-1px;
+  color:var(--text);
+  animation:fadeUp .9s .16s ease both;
+}
+.hero-h span{
+  display:block;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-style:normal;font-weight:800;
+  font-size:clamp(16px,2.2vw,28px);
+  letter-spacing:.02em;color:var(--gold);
+  margin-top:18px;line-height:1.45;
+}
+
+/* mission text */
+.hero-mission{
+  position:relative;z-index:2;
+  max-width:680px;margin:32px auto 0;
+  font-size:17px;line-height:1.82;
+  color:var(--softer);font-weight:300;
+  animation:fadeUp .9s .24s ease both;
+}
+
+/* CTA buttons */
+.hero-btns{
+  display:flex;gap:12px;justify-content:center;
+  margin-top:52px;
+  animation:fadeUp .9s .32s ease both;
+}
+
+.btn{
+  display:inline-block;padding:14px 32px;border-radius:3px;
+  font-family:'Outfit',sans-serif;font-size:14px;
+  font-weight:500;letter-spacing:.05em;cursor:pointer;
+  transition:all .2s;
+}
+.btn-fill{
+  background:var(--ember);color:#fff;
+  box-shadow:0 6px 28px rgba(224,72,0,.38);
+}
+.btn-fill:hover{background:var(--ember-d);box-shadow:0 8px 40px rgba(224,72,0,.55);transform:translateY(-2px);}
+.btn-ghost{
+  background:transparent;color:var(--text);
+  border:1px solid rgba(255,255,255,.14);
+}
+.btn-ghost:hover{border-color:rgba(255,153,68,.45);color:var(--amber);}
+
+/* scroll hint */
+.hero-scroll-hint{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding-bottom:48px;
+  color:var(--dim);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  animation:fadeIn 1.2s 1s ease both;
+}
+.scroll-chevron{font-size:16px;animation:scrollCaret 2s ease-in-out infinite;}
+
+/* ─────────────────────────────────────────
+   SECTION CHROME
+───────────────────────────────────────── */
+.eyebrow{
+  display:flex;align-items:center;gap:14px;
+  font-size:10.5px;font-weight:600;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ember);
+  margin-bottom:18px;
+}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--ember);}
+
+h2.display{
+  font-family:'DM Serif Display',serif;font-weight:400;font-style:italic;
+  font-size:clamp(36px,5vw,64px);line-height:1;letter-spacing:-.5px;
+  color:var(--text);margin-bottom:22px;
+}
+h2.display em{font-style:normal;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;}
+h2.display b{color:var(--gold);font-weight:400;}
+
+.body-text{
+  font-size:16.5px;line-height:1.8;color:var(--softer);
+  max-width:580px;font-weight:300;
+}
+
+/* ─────────────────────────────────────────
+   MISSION SECTION
+───────────────────────────────────────── */
+#mission{background:var(--ink2);padding:120px 0;}
+
+.mission-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:100px;align-items:center;
+}
+@media(max-width:860px){.mission-grid{grid-template-columns:1fr;gap:60px;}}
+
+.mission-quote-block{
+  border-left:2px solid var(--ember);
+  padding-left:36px;
+}
+.mission-quote-text{
+  font-family:'DM Serif Display',serif;font-style:italic;
+  font-size:clamp(20px,2.4vw,30px);font-weight:400;
+  line-height:1.55;color:var(--text);
+}
+.mission-quote-text strong{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-style:normal;font-weight:700;color:var(--gold);
+}
+.mission-attr{
+  margin-top:24px;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);
+  display:flex;align-items:center;gap:10px;
+}
+.mission-attr::before{content:'';width:20px;height:1px;background:var(--dim);}
+
+/* orbit visual */
+.orbit-wrap{
+  position:relative;display:flex;align-items:center;
+  justify-content:center;height:380px;
+}
+.orbit-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(224,72,0,.1);
+}
+.orbit-ring:nth-child(1){width:220px;height:220px;animation:spin 18s linear infinite;}
+.orbit-ring:nth-child(2){width:310px;height:310px;animation:spin 28s linear infinite reverse;border-color:rgba(255,204,85,.07);}
+.orbit-ring:nth-child(3){width:400px;height:400px;animation:spin 40s linear infinite;border-color:rgba(224,72,0,.05);}
+.orbit-ring::after{
+  content:'';position:absolute;top:-3.5px;left:50%;
+  transform:translateX(-50%);
+  width:7px;height:7px;border-radius:50%;
+  background:var(--ember);box-shadow:0 0 10px var(--ember);
+}
+.orbit-center{position:relative;z-index:2;text-align:center;}
+.orbit-sub{
+  margin-top:18px;font-family:'DM Serif Display',serif;
+  font-style:italic;font-size:16px;color:var(--gold);
+  letter-spacing:.04em;
+}
+@media(max-width:860px){.orbit-ring{display:none;}.orbit-wrap{height:240px;}}
+
+/* ─────────────────────────────────────────
+   SOLUTIONS
+───────────────────────────────────────── */
+#solutions{padding:120px 0;}
+
+.solutions-header{margin-bottom:72px;}
+
+.sol-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+@media(max-width:860px){.sol-grid{grid-template-columns:1fr;}}
+
+.sol-card{
+  background:var(--ink2);padding:60px 52px;
+  position:relative;overflow:hidden;
+  transition:background .3s;cursor:default;
+}
+.sol-card:hover{background:var(--ink3);}
+
+/* top accent bar */
+.sol-card::before{
+  content:'';position:absolute;inset:0 0 auto;height:2px;
+  background:linear-gradient(90deg,var(--ember),var(--gold));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .45s cubic-bezier(.16,1,.3,1);
+}
+.sol-card:hover::before{transform:scaleX(1);}
+
+/* large ghost number */
+.sol-num{
+  position:absolute;bottom:28px;right:36px;
+  font-family:'DM Serif Display',serif;font-style:italic;
+  font-size:120px;line-height:1;color:rgba(224,72,0,.05);
+  pointer-events:none;user-select:none;letter-spacing:-4px;
+}
+
+.sol-tag{
+  display:inline-block;margin-bottom:28px;
+  font-size:10px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);
+  background:rgba(224,72,0,.09);border:1px solid rgba(224,72,0,.2);
+  padding:5px 14px;border-radius:100px;
+}
+.sol-icon{
+  width:50px;height:50px;border-radius:12px;
+  background:rgba(224,72,0,.09);border:1px solid rgba(224,72,0,.16);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:24px;
+}
+.sol-title{
+  font-family:'DM Serif Display',serif;font-style:italic;
+  font-size:32px;line-height:1.1;color:var(--text);
+  margin-bottom:16px;
+}
+.sol-body{
+  font-size:15px;line-height:1.76;color:var(--softer);
+  margin-bottom:32px;font-weight:300;
+}
+.sol-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:36px;}
+.sol-features li{
+  display:flex;align-items:flex-start;gap:12px;
+  font-size:13.5px;color:rgba(221,214,202,.62);line-height:1.5;
+}
+.sol-features li::before{
+  content:'';width:4px;height:4px;border-radius:50%;
+  background:var(--ember);flex-shrink:0;margin-top:8px;
+}
+.sol-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:600;color:var(--amber);
+  letter-spacing:.05em;transition:gap .2s;
+}
+.sol-link::after{content:'→';}
+.sol-link:hover{gap:10px;}
+
+/* ─────────────────────────────────────────
+   AUDIENCES
+───────────────────────────────────────── */
+#audiences{
+  background:var(--ink2);
+  padding:120px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+
+.aud-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:24px;margin-top:64px;
+}
+@media(max-width:860px){.aud-grid{grid-template-columns:1fr;}}
+
+.aud-card{
+  background:var(--ink3);
+  border:1px solid var(--line);
+  border-radius:16px;padding:52px 46px;
+  position:relative;overflow:hidden;
+  transition:border-color .3s,transform .3s;
+}
+.aud-card:hover{border-color:rgba(224,72,0,.32);transform:translateY(-4px);}
+.aud-card::after{
+  content:'';position:absolute;inset:auto 0 0;height:120px;
+  background:linear-gradient(to top,rgba(224,72,0,.04),transparent);
+  pointer-events:none;
+}
+.aud-ghost-num{
+  position:absolute;top:20px;right:28px;
+  font-family:'DM Serif Display',serif;font-style:italic;
+  font-size:90px;line-height:1;color:rgba(224,72,0,.06);
+  pointer-events:none;
+}
+.aud-tag{
+  display:inline-block;margin-bottom:20px;
+  font-size:10px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--amber);
+  background:rgba(224,72,0,.08);border:1px solid rgba(224,72,0,.18);
+  padding:4px 13px;border-radius:100px;
+}
+.aud-title{
+  font-family:'DM Serif Display',serif;font-style:italic;
+  font-size:28px;line-height:1.15;margin-bottom:14px;color:var(--text);
+}
+.aud-body{font-size:14.5px;line-height:1.76;color:var(--softer);margin-bottom:28px;}
+.aud-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.aud-list li{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:rgba(221,214,202,.58);
+}
+.aud-list li::before{
+  content:'';width:4px;height:4px;border-radius:50%;
+  background:var(--ember);flex-shrink:0;
+}
+
+/* ─────────────────────────────────────────
+   STATS BAND
+───────────────────────────────────────── */
+#stats{padding:100px 0;}
+
+.stats-hd{margin-bottom:64px;}
+
+.stats-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--line);
+  border:1px solid var(--line);
+}
+@media(max-width:860px){.stats-grid{grid-template-columns:1fr 1fr;}}
+
+.stat-card{
+  background:var(--ink);padding:52px 36px;
+  position:relative;overflow:hidden;
+  transition:background .3s;
+}
+.stat-card:hover{background:var(--ink3);}
+.stat-card::before{
+  content:'';position:absolute;inset:0 0 auto;height:2px;
+  background:linear-gradient(90deg,var(--ember),var(--gold));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s ease;
+}
+.stat-card:hover::before{transform:scaleX(1);}
+.stat-n{
+  font-family:'DM Serif Display',serif;font-size:58px;
+  font-weight:400;color:var(--gold);line-height:1;
+  display:block;letter-spacing:-1px;
+}
+.stat-l{
+  display:block;margin-top:12px;font-size:13.5px;
+  color:rgba(221,214,202,.48);font-weight:300;line-height:1.55;
+}
+.stat-src{
+  display:block;margin-top:10px;font-size:9.5px;
+  letter-spacing:.12em;color:var(--dim);text-transform:uppercase;
+}
+
+/* ─────────────────────────────────────────
+   PILLARS / WHY
+───────────────────────────────────────── */
+#why{
+  background:var(--ink2);padding:120px 0;
+  border-top:1px solid var(--line);
+}
+
+.pillars-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--line);margin-top:64px;
+  border:1px solid var(--line);
+}
+@media(max-width:860px){.pillars-grid{grid-template-columns:1fr;}}
+
+.pillar{
+  background:var(--ink2);padding:44px 38px;
+  transition:background .3s;position:relative;overflow:hidden;
+}
+.pillar:hover{background:var(--ink3);}
+.pillar-ico{
+  width:42px;height:42px;border-radius:10px;
+  background:rgba(224,72,0,.09);border:1px solid rgba(224,72,0,.16);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:20px;
+}
+.pillar-t{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:600;font-size:15px;margin-bottom:10px;
+}
+.pillar-b{font-size:13.5px;color:var(--softer);line-height:1.7;}
+
+/* ─────────────────────────────────────────
+   CTA SECTION
+───────────────────────────────────────── */
+#cta{padding:80px 0 120px;}
+
+.cta-box{
+  background:linear-gradient(135deg,#130b04 0%,#0c0905 50%,#120e06 100%);
+  border:1px solid rgba(224,72,0,.2);border-radius:20px;
+  padding:100px 80px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-box::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:800px;height:400px;
+  background:radial-gradient(ellipse,rgba(224,72,0,.18),transparent 65%);
+  pointer-events:none;
+}
+.cta-box::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--ember),transparent);
+  opacity:.5;
+}
+.cta-h{
+  position:relative;z-index:1;
+  font-family:'DM Serif Display',serif;font-style:italic;
+  font-size:clamp(36px,5.5vw,72px);
+  line-height:.95;letter-spacing:-.5px;
+  color:var(--text);margin-bottom:20px;
+}
+.cta-h em{
+  font-style:normal;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:800;color:var(--gold);
+}
+.cta-sub{
+  position:relative;z-index:1;
+  font-size:17px;color:var(--softer);
+  max-width:480px;margin:0 auto 52px;
+  line-height:1.78;
+}
+.cta-btns{
+  position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:center;gap:14px;
+}
+
+@media(max-width:860px){
+  .cta-box{padding:60px 24px;}
+  .cta-btns{flex-direction:column;}
+}
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+footer{
+  background:var(--ink2);
+  border-top:1px solid var(--line);
+  padding:52px 56px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:28px;
+}
+.footer-left svg{overflow:visible;}
+.footer-tagline{
+  font-size:11px;letter-spacing:.16em;color:var(--dim);
+  text-transform:uppercase;margin-top:6px;padding-left:2px;
+}
+.footer-tagline span{color:var(--ember);}
+.footer-nav{
+  display:flex;gap:28px;list-style:none;
+  font-size:12.5px;color:var(--dim);
+}
+.footer-nav a:hover{color:var(--amber);}
+.footer-copy{
+  width:100%;font-size:11px;color:rgba(90,85,78,.5);
+  padding-top:20px;border-top:1px solid var(--line);
+}
+@media(max-width:860px){footer{padding:40px 22px;}.footer-nav{flex-wrap:wrap;}}
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════╗
+     NAV
+╚══════════════════════════════════════╝ -->
+<nav>
+  <div class="nav-brand">
+    <!-- compact nav logo — exact v4 tagline SVG, scaled for nav -->
+    <svg width="216" height="38" viewBox="0 0 560 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <defs>
+        <radialGradient id="n-emb" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#fff8e8"/>
+          <stop offset="25%"  stop-color="#ffcc55"/>
+          <stop offset="60%"  stop-color="#e04800"/>
+          <stop offset="100%" stop-color="#801800" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="n-hal" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#e04800" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#e04800" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="n-ecg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#4488ff" stop-opacity="0.15"/>
+          <stop offset="35%"  stop-color="#44aaff" stop-opacity="0.6"/>
+          <stop offset="62%"  stop-color="#ff8830"/>
+          <stop offset="80%"  stop-color="#e04800"/>
+          <stop offset="100%" stop-color="#ff4400" stop-opacity="0.4"/>
+        </linearGradient>
+        <linearGradient id="n-et" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#e8e0d8"/>
+          <stop offset="100%" stop-color="#a89880"/>
+        </linearGradient>
+        <linearGradient id="n-it" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#ff9944"/>
+          <stop offset="100%" stop-color="#e03800"/>
+        </linearGradient>
+        <filter id="n-gf" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="n-sf" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="10"/>
+        </filter>
+        <filter id="n-ef" x="-10%" y="-200%" width="120%" height="500%">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="n-tf" x="-5%" y="-30%" width="110%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="#fff" stroke-width="0.5" stroke-opacity="0.05" fill="none"/>
+      <path class="ecg-line"   d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="url(#n-ecg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#n-ef)"/>
+      <path class="ecg-line-2" d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="url(#n-ecg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#n-ef)" opacity="0.4"/>
+      <circle cx="124" cy="50" r="18" stroke="#e04800" stroke-width="1"   stroke-opacity="0.5" fill="none" class="ping-ring"/>
+      <circle cx="124" cy="50" r="14" stroke="#ff8830" stroke-width="0.7" stroke-opacity="0.4" fill="none" class="ping-ring" style="animation-delay:.3s"/>
+      <circle cx="124" cy="50" r="20" fill="url(#n-hal)" class="breathe"/>
+      <circle cx="124" cy="50" r="10" fill="#e04800" filter="url(#n-sf)" opacity="0.5"/>
+      <g class="ember-core">
+        <circle cx="124" cy="50" r="9"   fill="url(#n-emb)" filter="url(#n-gf)"/>
+        <circle cx="124" cy="50" r="3.2" fill="#fffaee" opacity="0.98"/>
+      </g>
+      <line x1="218" y1="18" x2="218" y2="82" stroke="#222228" stroke-width="1"/>
+      <text x="234" y="70" font-family="'Plus Jakarta Sans',sans-serif" font-weight="700" font-size="52" fill="url(#n-et)" letter-spacing="-1">EMBER</text>
+      <text x="430" y="70" font-family="'Plus Jakarta Sans',sans-serif" font-weight="200" font-size="52" fill="url(#n-it)" filter="url(#n-tf)" letter-spacing="3">ION</text>
+      <text x="235" y="86" font-family="'Outfit',sans-serif" font-weight="300" font-size="8" fill="#3a3a45" letter-spacing="2">CLINICAL &amp; WORKFORCE HEALTH TECHNOLOGY</text>
+    </svg>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#solutions">Solutions</a></li>
+    <li><a href="#audiences">Who We Serve</a></li>
+    <li><a href="#stats">The Problem</a></li>
+    <li><a href="#cta" class="nav-cta">Get in Touch</a></li>
+  </ul>
+</nav>
+
+<!-- ╔══════════════════════════════════════╗
+     HERO
+╚══════════════════════════════════════╝ -->
+<section id="hero">
+  <div class="hero-ambient"></div>
+
+  <!-- wide ECG behind everything -->
+  <svg class="hero-ecg-bg" viewBox="0 0 1400 280" fill="none" preserveAspectRatio="xMidYMid slice" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:140%;opacity:.06;pointer-events:none;">
+    <defs>
+      <linearGradient id="bg-g" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#44aaff" stop-opacity="0"/>
+        <stop offset="15%"  stop-color="#44aaff"/>
+        <stop offset="40%"  stop-color="#ff8830"/>
+        <stop offset="58%"  stop-color="#e04800"/>
+        <stop offset="85%"  stop-color="#e04800"/>
+        <stop offset="100%" stop-color="#e04800" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="bg-f" x="-5%" y="-500%" width="110%" height="1100%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <path d="M0,140 L160,140 L200,140 L234,98 L260,182 L296,30 L328,250 L360,140 L440,140 L570,140 L600,118 L622,162 L644,140 L740,140 L780,140 L814,98 L840,182 L876,30 L908,250 L940,140 L1020,140 L1150,140 L1180,118 L1202,162 L1224,140 L1400,140"
+          stroke="url(#bg-g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#bg-f)"/>
+  </svg>
+
+  <div class="hero-body">
+    <!-- EXACT primary lockup from v4-tagline, full size -->
+    <div class="hero-logo-wrap">
+      <svg width="560" height="100" viewBox="0 0 560 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;max-width:90vw;">
+        <defs>
+          <radialGradient id="h-emb" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#fff8e8"/>
+            <stop offset="25%"  stop-color="#ffcc55"/>
+            <stop offset="60%"  stop-color="#e04800"/>
+            <stop offset="100%" stop-color="#801800" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="h-hal" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#e04800" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#e04800" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="h-ecg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#4488ff" stop-opacity="0.15"/>
+            <stop offset="35%"  stop-color="#44aaff" stop-opacity="0.6"/>
+            <stop offset="62%"  stop-color="#ff8830"/>
+            <stop offset="80%"  stop-color="#e04800"/>
+            <stop offset="100%" stop-color="#ff4400" stop-opacity="0.4"/>
+          </linearGradient>
+          <linearGradient id="h-et" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#e8e0d8"/>
+            <stop offset="100%" stop-color="#a89880"/>
+          </linearGradient>
+          <linearGradient id="h-it" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#ff9944"/>
+            <stop offset="100%" stop-color="#e03800"/>
+          </linearGradient>
+          <filter id="h-gf" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="h-sf" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="10"/>
+          </filter>
+          <filter id="h-ef" x="-10%" y="-200%" width="120%" height="500%">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="h-tf" x="-5%" y="-30%" width="110%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.05" fill="none"/>
+        <path class="ecg-line"   d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="url(#h-ecg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#h-ef)"/>
+        <path class="ecg-line-2" d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="url(#h-ecg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#h-ef)" opacity="0.4"/>
+        <circle cx="124" cy="50" r="18" stroke="#e04800" stroke-width="1"   stroke-opacity="0.5" fill="none" class="ping-ring"/>
+        <circle cx="124" cy="50" r="14" stroke="#ff8830" stroke-width="0.7" stroke-opacity="0.4" fill="none" class="ping-ring" style="animation-delay:.3s"/>
+        <circle cx="124" cy="50" r="20" fill="url(#h-hal)" class="breathe"/>
+        <circle cx="124" cy="50" r="10" fill="#e04800" filter="url(#h-sf)" opacity="0.5"/>
+        <g class="ember-core">
+          <circle cx="124" cy="50" r="9"   fill="url(#h-emb)" filter="url(#h-gf)"/>
+          <circle cx="124" cy="50" r="3.2" fill="#fffaee" opacity="0.98"/>
+        </g>
+        <line x1="218" y1="18" x2="218" y2="82" stroke="#222228" stroke-width="1"/>
+        <text x="234" y="70" font-family="'Plus Jakarta Sans',sans-serif" font-weight="700" font-size="52" fill="url(#h-et)" letter-spacing="-1">EMBER</text>
+        <text x="430" y="70" font-family="'Plus Jakarta Sans',sans-serif" font-weight="200" font-size="52" fill="url(#h-it)" filter="url(#h-tf)" letter-spacing="3">ION</text>
+        <text x="235" y="86" font-family="'Outfit',sans-serif" font-weight="300" font-size="8" fill="#3a3a45" letter-spacing="2">CLINICAL &amp; WORKFORCE HEALTH TECHNOLOGY</text>
+      </svg>
+    </div>
+
+    <div class="mission-quote-block" style="max-width:680px;text-align:left;animation:fadeUp .9s .1s ease both;">
+      <p class="mission-quote-text">
+        "Our mission is to empower a healthier, more resilient healthcare ecosystem by building <strong>intelligent tools</strong> that restore purpose to providers, streamline workforce health programs, and deliver <strong>data-driven solutions</strong> that help organizations support the well-being, performance, and long-term success of <strong>every person in their care.</strong>"
+      </p>
+      <div class="mission-attr">Ember Ion</div>
+    </div>
+
+    <div class="hero-btns">
+      <a href="#solutions" class="btn btn-fill">Explore Our Solutions</a>
+      <a href="#cta"       class="btn btn-ghost">Get in Touch</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <span class="scroll-chevron">⌄</span>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<div class="rule-ember"></div>
+
+<!-- ╔══════════════════════════════════════╗
+     SOLUTIONS
+╚══════════════════════════════════════╝ -->
+<section id="solutions">
+  <div class="container">
+    <div class="solutions-header">
+      <h2 class="display sr">Two platforms.<br><b>One ecosystem.</b></h2>
+    </div>
+  </div>
+
+  <div class="sol-grid">
+    <!-- CARD 1 -->
+    <div class="sol-card sr">
+      <div class="sol-num">01</div>
+      <div class="sol-tag">For Hospitals &amp; Health Systems</div>
+      <div class="sol-icon">💬</div>
+      <h3 class="sol-title">Ember Reignition</h3>
+      <p class="sol-body">A HIPAA-compliant platform that closes the loop between patients and the providers who cared for them. Delivering real patient gratitude and outcomes directly to staff restores the one thing burnout steals first — purpose.</p>
+      <ul class="sol-features">
+        <li>Patients send personalized recognition letters to their care team in real time</li>
+        <li>Staff receive post-discharge outcome updates showing lasting impact</li>
+        <li>Manager dashboard with anonymized satisfaction trends and early burnout signals</li>
+        <li>Native integration with Epic, Cerner, and Medtech — zero workflow disruption</li>
+        <li>$8/user/month — less than the cost of replacing a single nurse</li>
+      </ul>
+      <a href="#cta" class="sol-link">Learn more</a>
+    </div>
+
+    <!-- CARD 2 — Coming Soon -->
+    <div class="sol-card sr d2" style="opacity:.75;position:relative;">
+      <!-- construction overlay badge -->
+      <div style="position:absolute;top:28px;right:28px;display:flex;align-items:center;gap:7px;background:rgba(255,204,85,0.1);border:1px solid rgba(255,204,85,0.28);border-radius:100px;padding:5px 14px;z-index:2;">
+        <span style="width:5px;height:5px;border-radius:50%;background:#ffcc55;animation:breathe 1.2s ease-in-out infinite;flex-shrink:0;"></span>
+        <span style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#ffcc55;">Coming Soon</span>
+      </div>
+      <div class="sol-num">02</div>
+      <div class="sol-tag">For Employers &amp; Occupational Health</div>
+      <div class="sol-icon">⚕️</div>
+      <h3 class="sol-title">Ember Workforce</h3>
+      <p class="sol-body">An intelligent platform that guides occupational health programs and streamlines case coordination.</p>
+      <!-- under construction state -->
+      <div style="margin-top:32px;padding:36px 32px;border:1px dashed rgba(255,204,85,0.2);border-radius:12px;text-align:center;background:rgba(255,204,85,0.03);">
+        <div style="font-size:32px;margin-bottom:14px;">🔧</div>
+        <div style="font-family:'DM Serif Display',serif;font-style:italic;font-size:22px;color:var(--gold);margin-bottom:10px;">Under Construction</div>
+        <p style="font-size:13.5px;color:var(--softer);line-height:1.65;max-width:320px;margin:0 auto;">We're building something powerful. Be the first to know when Ember Workforce launches.</p>
+        <a href="mailto:hello@emberion.co" style="display:inline-flex;align-items:center;gap:6px;margin-top:22px;font-size:13px;font-weight:600;color:var(--gold);letter-spacing:.05em;transition:gap .2s;" onmouseover="this.style.gap='10px'" onmouseout="this.style.gap='6px'">
+          Get notified →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ╔══════════════════════════════════════╗
+     AUDIENCES
+╚══════════════════════════════════════╝ -->
+<section id="audiences">
+  <div class="container">
+    <div class="eyebrow sr">Who We Serve</div>
+    <h2 class="display sr d1">Built for hospitals.<br><b>Designed for employers.</b></h2>
+    <p class="body-text sr d2">Ember Ion products are engineered for the two organizations most responsible for the health of the American workforce — hospital systems and the employers who depend on them.</p>
+
+    <div class="aud-grid">
+      <div class="aud-card sr d1">
+        <div class="aud-ghost-num">01</div>
+        <div class="aud-tag">Hospitals &amp; Health Systems</div>
+        <h3 class="aud-title">Restore what burnout has taken</h3>
+        <p class="aud-body">Hospitals face a retention crisis rooted in emotional depletion. Ember Ion gives clinical leaders the tools to reconnect staff with the purpose that brought them into healthcare — and the data to intervene before burnout becomes resignation.</p>
+        <ul class="aud-list">
+          <li>Chief Nursing Officers &amp; Clinical Leadership</li>
+          <li>HR &amp; Workforce Engagement Teams</li>
+          <li>Hospital Administrators &amp; CFOs</li>
+          <li>Quality &amp; Patient Experience Departments</li>
+        </ul>
+      </div>
+      <div class="aud-card sr d2">
+        <div class="aud-ghost-num">02</div>
+        <div class="aud-tag">Employers &amp; Occupational Health</div>
+        <h3 class="aud-title">Manage workforce health intelligently</h3>
+        <p class="aud-body">From self-insured employers to third-party administrators, Ember Ion equips organizations with intelligent tools to manage occupational health programs, streamline case coordination, and reduce the cost and complexity of workers' comp.</p>
+        <ul class="aud-list">
+          <li>HR Directors &amp; Benefits Managers</li>
+          <li>Occupational Health Program Leaders</li>
+          <li>Workers' Comp Case Coordinators</li>
+          <li>Risk Managers &amp; TPAs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ╔══════════════════════════════════════╗
+     STATS
+╚══════════════════════════════════════╝ -->
+<section id="stats">
+  <div class="container">
+    <div class="stats-hd">
+      <div class="eyebrow sr">The Problem We Solve</div>
+      <h2 class="display sr d1">A crisis hiding<br><b>in plain sight.</b></h2>
+      <p class="body-text sr d2">The numbers are staggering — and largely preventable. Healthcare organizations are losing their best people not to competing offers, but to exhaustion and feeling unseen.</p>
+    </div>
+  </div>
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card sr">
+      <span class="stat-n">$16B+</span>
+      <span class="stat-l">Annual cost of nurse turnover in the United States alone</span>
+      <span class="stat-src">NSI Nursing Solutions</span>
+    </div>
+    <div class="stat-card sr d1">
+      <span class="stat-n">$50K</span>
+      <span class="stat-l">Average cost to recruit and replace a single bedside nurse</span>
+      <span class="stat-src">JONA / NSI Report 2024</span>
+    </div>
+    <div class="stat-card sr d2">
+      <span class="stat-n">54%</span>
+      <span class="stat-l">Of nurses reporting moderate-to-severe burnout symptoms</span>
+      <span class="stat-src">American Nurses Foundation</span>
+    </div>
+    <div class="stat-card sr d3">
+      <span class="stat-n">$125B</span>
+      <span class="stat-l">Estimated annual economic cost of physician burnout in the US</span>
+      <span class="stat-src">Stanford Medicine / Shanafelt</span>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ╔══════════════════════════════════════╗
+     WHY EMBER ION
+╚══════════════════════════════════════╝ -->
+<section id="why">
+  <div class="container">
+    <div class="eyebrow sr">Why Ember Ion</div>
+    <h2 class="display sr d1">Intelligence that<br><b>drives real outcomes.</b></h2>
+    <p class="body-text sr d2">Every product we build is designed around the specific emotional and operational realities of healthcare — not adapted from generic SaaS.</p>
+
+    <div class="pillars-grid">
+      <div class="pillar sr">
+        <div class="pillar-ico">🎯</div>
+        <div class="pillar-t">Purpose-Built for Healthcare</div>
+        <p class="pillar-b">Every workflow and data point is designed around clinical and occupational realities — not repurposed from generic enterprise tools.</p>
+      </div>
+      <div class="pillar sr d1">
+        <div class="pillar-ico">🤝</div>
+        <div class="pillar-t">Human-Centered by Design</div>
+        <p class="pillar-b">Our platforms reduce friction for patients, providers, and administrators — technology that feels invisible because it just works.</p>
+      </div>
+      <div class="pillar sr d2">
+        <div class="pillar-ico">📊</div>
+        <div class="pillar-t">Data That Drives Action</div>
+        <p class="pillar-b">From burnout trend detection to occupational risk analytics, our platforms surface insights that help leaders act early — before problems compound.</p>
+      </div>
+      <div class="pillar sr d1">
+        <div class="pillar-ico">🔗</div>
+        <div class="pillar-t">Deeply Interoperable</div>
+        <p class="pillar-b">Native integration with Epic, Cerner, Medtech, and major claims platforms means zero workflow disruption and instant time-to-value.</p>
+      </div>
+      <div class="pillar sr d2">
+        <div class="pillar-ico">🔒</div>
+        <div class="pillar-t">HIPAA-Compliant Security</div>
+        <p class="pillar-b">Enterprise-grade security, role-based access, full audit trails, and a privacy-first architecture — built in from day one, not bolted on.</p>
+      </div>
+      <div class="pillar sr d3">
+        <div class="pillar-ico">📈</div>
+        <div class="pillar-t">Measurable ROI</div>
+        <p class="pillar-b">From reduced turnover costs to faster return-to-work rates, Ember Ion customers see financial impact that more than justifies the investment.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ╔══════════════════════════════════════╗
+     CTA
+╚══════════════════════════════════════╝ -->
+<section id="cta">
+  <div class="container">
+    <div class="cta-box">
+      <div class="eyebrow sr" style="justify-content:center;">Partner With Us</div>
+      <h2 class="cta-h sr d1">
+        Ready to reignite<br>your <em>care ecosystem?</em>
+      </h2>
+      <p class="cta-sub sr d2">We're partnering with forward-thinking hospital systems and employers in 2026. If your organization is serious about workforce health and provider well-being, let's talk.</p>
+      <div class="cta-btns sr d3">
+        <a href="mailto:hello@emberion.co" class="btn btn-fill">hello@emberion.co</a>
+        <a href="#" class="btn btn-ghost">Request a Demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════╗
+     FOOTER
+╚══════════════════════════════════════╝ -->
+<footer>
+  <div class="footer-left">
+    <!-- compact footer logo -->
+    <svg width="190" height="36" viewBox="0 0 560 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <defs>
+        <radialGradient id="f-emb" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#fff8e8"/>
+          <stop offset="30%"  stop-color="#ffcc55"/>
+          <stop offset="65%"  stop-color="#e04800"/>
+          <stop offset="100%" stop-color="#801800" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="f-hal" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#e04800" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="#e04800" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="f-ecg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#4488ff" stop-opacity="0.15"/>
+          <stop offset="35%"  stop-color="#44aaff" stop-opacity="0.55"/>
+          <stop offset="62%"  stop-color="#ff8830"/>
+          <stop offset="80%"  stop-color="#e04800"/>
+          <stop offset="100%" stop-color="#ff4400" stop-opacity="0.35"/>
+        </linearGradient>
+        <linearGradient id="f-et" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#e8e0d8"/>
+          <stop offset="100%" stop-color="#a89880"/>
+        </linearGradient>
+        <linearGradient id="f-it" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#ff9944"/>
+          <stop offset="100%" stop-color="#e03800"/>
+        </linearGradient>
+        <filter id="f-gf" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="f-sf" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="8"/>
+        </filter>
+        <filter id="f-ef" x="-10%" y="-200%" width="120%" height="500%">
+          <feGaussianBlur stdDeviation="2" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="f-tf" x="-5%" y="-30%" width="110%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path class="ecg-line"   d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="url(#f-ecg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#f-ef)"/>
+      <path class="ecg-line-2" d="M 20,50 L 100,50 L 108,50 L 114,38 L 118,64 L 124,20 L 128,78 L 132,50 L 138,50 L 148,50 L 154,44 L 158,56 L 162,50 L 200,50" stroke="url(#f-ecg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#f-ef)" opacity="0.35"/>
+      <circle cx="124" cy="50" r="16" fill="url(#f-hal)" class="breathe"/>
+      <circle cx="124" cy="50" r="9"  fill="#e04800" filter="url(#f-sf)" opacity="0.45"/>
+      <g class="ember-core">
+        <circle cx="124" cy="50" r="8.5" fill="url(#f-emb)" filter="url(#f-gf)"/>
+        <circle cx="124" cy="50" r="3"   fill="#fffaee" opacity="0.98"/>
+      </g>
+      <line x1="218" y1="18" x2="218" y2="82" stroke="#1e1e26" stroke-width="1"/>
+      <text x="234" y="70" font-family="'Plus Jakarta Sans',sans-serif" font-weight="700" font-size="52" fill="url(#f-et)" letter-spacing="-1">EMBER</text>
+      <text x="430" y="70" font-family="'Plus Jakarta Sans',sans-serif" font-weight="200" font-size="52" fill="url(#f-it)" filter="url(#f-tf)" letter-spacing="3">ION</text>
+      <text x="235" y="86" font-family="'Outfit',sans-serif" font-weight="300" font-size="8" fill="#2e2e38" letter-spacing="2">CLINICAL &amp; WORKFORCE HEALTH TECHNOLOGY</text>
+    </svg>
+    <div class="footer-tagline">Reigniting the Heart of Healthcare &nbsp;·&nbsp; <span>Defy the Dim.</span></div>
+  </div>
+  <ul class="footer-nav">
+    <li><a href="#solutions">Solutions</a></li>
+    <li><a href="#audiences">Who We Serve</a></li>
+    <li><a href="#cta">Contact</a></li>
+    <li><a href="mailto:hello@emberion.co" style="color:var(--amber)">hello@emberion.co</a></li>
+  </ul>
+  <div class="footer-copy">© 2026 Ember Ion Health, Inc. All rights reserved. Clinical &amp; Workforce Health Technology.</div>
+</footer>
+
+<script>
+/* ── scroll reveal ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.sr').forEach(el => io.observe(el));
+
+/* ── stat counter animation ── */
+function counter(el, end, pfx, sfx) {
+  const dur = 2000, t0 = performance.now();
+  const isInt = Number.isInteger(end);
+  requestAnimationFrame(function tick(t) {
+    const p = Math.min((t - t0) / dur, 1);
+    const v = 1 - Math.pow(1 - p, 3);
+    el.textContent = pfx + (isInt ? Math.round(v * end) : (v * end).toFixed(1)) + sfx;
+    if (p < 1) requestAnimationFrame(tick);
+  });
+}
+
+const statsObs = new IntersectionObserver(entries => {
+  if (!entries[0].isIntersecting) return;
+  const cards = document.querySelectorAll('.stat-n');
+  const cfg = [
+    { end:16,  pfx:'$', sfx:'B+' },
+    { end:50,  pfx:'$', sfx:'K'  },
+    { end:54,  pfx:'',  sfx:'%'  },
+    { end:125, pfx:'$', sfx:'B'  },
+  ];
+  cards.forEach((c,i) => counter(c, cfg[i].end, cfg[i].pfx, cfg[i].sfx));
+  statsObs.disconnect();
+}, { threshold: 0.3 });
+
+const sg = document.getElementById('stats-grid');
+if (sg) statsObs.observe(sg);
+</script>
+</body>
+</html>
